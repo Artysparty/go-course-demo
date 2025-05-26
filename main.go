@@ -7,14 +7,42 @@ import (
 
 func main() {
 	fmt.Println("__ Калькулятор массы тела __")
-	userHeight, userWeigth := getUserInput()
-	IMT := calculateIMT(userHeight, userWeigth)
-	outputResult(IMT)
+
+	for {
+		userHeight, userWeigth := getUserInput()
+		IMT := calculateIMT(userHeight, userWeigth)
+		outputResult(IMT)
+		isContinue := checkContinue()
+		if !isContinue {
+			return
+		}
+	}
+}
+
+func checkContinue() bool {
+	var userAnswer string
+
+	fmt.Print("Посчиать индекс массы тела еще раз? (y/n): ")
+	fmt.Scan(&userAnswer)
+
+	return userAnswer == "y" || userAnswer == "Y"
 }
 
 func outputResult(IMT float64) {
+	switch {
+	case IMT < 16:
+		fmt.Println("У вас критический недостаток веса")
+	case IMT < 18.5:
+		fmt.Println("У вас недостаток веса")
+	case IMT < 25:
+		fmt.Println("У вас нормальный вес")
+	case IMT < 30:
+		fmt.Println("У вас избыточный вес")
+	default:
+		fmt.Println("У вас ожирение")
+	}
 	result := fmt.Sprintf("Ваш индекс массы тела: %.0f", IMT)
-	fmt.Print(result)
+	fmt.Println(result)
 }
 
 func calculateIMT(height, weight float64) float64 {
