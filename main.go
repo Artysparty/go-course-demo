@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"math"
 )
@@ -10,7 +11,11 @@ func main() {
 
 	for {
 		userHeight, userWeigth := getUserInput()
-		IMT := calculateIMT(userHeight, userWeigth)
+		IMT, err := calculateIMT(userHeight, userWeigth)
+		if err != nil {
+			fmt.Println("Не заданы параметры расчета")
+			continue
+		}
 		outputResult(IMT)
 		isContinue := checkContinue()
 		if !isContinue {
@@ -45,10 +50,13 @@ func outputResult(IMT float64) {
 	fmt.Println(result)
 }
 
-func calculateIMT(height, weight float64) float64 {
+func calculateIMT(height, weight float64) (float64, error) {
+	if height <= 0 || weight <= 0 {
+		return 0, errors.New("NO_PARAMS_ERROR")
+	}
 	const IMTPower = 2
 	IMT := weight / math.Pow(height/100, IMTPower)
-	return IMT
+	return IMT, nil
 }
 
 func getUserInput() (float64, float64) {
