@@ -14,9 +14,9 @@ Menu:
 		case "1":
 			printBookmarks(bookmarks)
 		case "2":
-			bookmarks = addBookmark(bookmarks)
+			addBookmark(bookmarks)
 		case "3":
-			bookmarks = deleteBookmark(bookmarks)
+			deleteBookmark(bookmarks)
 		default:
 			break Menu
 		}
@@ -29,7 +29,7 @@ func printBookmarks(bookmarks bookmarkMap) {
 	}
 
 	for key, value := range bookmarks {
-		fmt.Println(key, ": ", value)
+		fmt.Println(key, ":", value)
 	}
 }
 
@@ -59,16 +59,14 @@ func createBookmark() (string, string) {
 	return bookmarkName, bookmarkLink
 }
 
-func addBookmark(bookmarks bookmarkMap) bookmarkMap {
+func addBookmark(bookmarks bookmarkMap) {
 	newBookmarkName, newBookmarkLink := createBookmark()
 	bookmarks[newBookmarkName] = newBookmarkLink
 
 	fmt.Println("Закладка добавлена!")
-
-	return bookmarks
 }
 
-func deleteBookmark(bookmarks bookmarkMap) bookmarkMap {
+func deleteBookmark(bookmarks bookmarkMap) {
 	var bookmarkName string
 
 	fmt.Print("Введите название закладки, которую нужно удалить: ")
@@ -77,6 +75,4 @@ func deleteBookmark(bookmarks bookmarkMap) bookmarkMap {
 	delete(bookmarks, bookmarkName)
 
 	fmt.Printf("Закладка удалена: %v", bookmarks)
-
-	return bookmarks
 }
