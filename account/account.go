@@ -1,34 +1,29 @@
 package account
 
 import (
-	"encoding/json"
 	"errors"
-	"fmt"
 	"math/rand/v2"
 	"net/url"
+	"time"
 	"unicode/utf8"
+
+	"github.com/fatih/color"
 )
 
 var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890?!-.,_")
 
-// Структура account
 type Account struct {
-	Login    string `json:"login"`
-	Password string `json:"password"`
-	Url      string `json:"url"`
+	Login       string    `json:"login"`
+	Password    string    `json:"password"`
+	Url         string    `json:"url"`
+	CreatedDate time.Time `json:"createdDate"`
+	UpdatedDate time.Time `json:"updatedDate"`
 }
 
-// Методы структуры account
 func (acc *Account) PrintAccount() {
-	fmt.Println(acc.Login, acc.Password, acc.Url)
-}
-
-func (acc *Account) ToBytes() ([]byte, error) {
-	file, err := json.Marshal(acc)
-	if err != nil {
-		return nil, err
-	}
-	return file, nil
+	color.Blue(acc.Login)
+	color.Blue(acc.Password)
+	color.Blue(acc.Url)
 }
 
 func (acc *Account) generatePassword(n int) {
@@ -39,18 +34,19 @@ func (acc *Account) generatePassword(n int) {
 	acc.Password = string(res)
 }
 
-// Функция - конструктор
 func NewAccount(login, urlString, password string) (*Account, error) {
 	_, err := url.ParseRequestURI(urlString)
 
 	if err != nil {
-		return nil, errors.New("Неверный формат URL")
+		return nil, errors.New("неверный формат URL")
 	}
 
 	account := Account{
-		Login:    login,
-		Url:      urlString,
-		Password: password,
+		Login:       login,
+		Url:         urlString,
+		Password:    password,
+		CreatedDate: time.Now(),
+		UpdatedDate: time.Now(),
 	}
 
 	if utf8.RuneCountInString(account.Password) == 0 {
