@@ -1,34 +1,41 @@
 package main
 
-import "fmt"
+import (
+	"demo/app-1/account"
+	"demo/app-1/files"
+	"fmt"
 
-type account struct {
-	login    string
-	password string
-	url      string
-}
+	"github.com/fatih/color"
+)
 
+// Основной код
 func structures() {
 	login := scanTemplate("Введите логин: ")
 	password := scanTemplate("Введите пароль: ")
 	url := scanTemplate("Введите URL: ")
 
-	accountOne := account{
-		login,
-		password,
-		url,
+	accountOne, err := account.NewAccount(login, url, password)
+
+	if err != nil {
+		fmt.Println(err)
+		return
 	}
 
-	printAccount(&accountOne)
+	file, err := accountOne.ToBytes()
+
+	if err != nil {
+		fmt.Println("Не удалось преобразовать в JSON")
+		return
+	}
+
+	files.WriteFile(file, "data.json")
+
+	// accountOne.PrintAccount()
 }
 
 func scanTemplate(template string) string {
-	fmt.Print(template)
+	color.Cyan(template)
 	var res string
 	fmt.Scan(&res)
 	return res
-}
-
-func printAccount(acc *account) {
-	fmt.Println(acc.login, acc.password, acc.url)
 }
