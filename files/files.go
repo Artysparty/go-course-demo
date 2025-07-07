@@ -1,14 +1,25 @@
 package files
 
 import (
+	"demo/app-1/output"
 	"fmt"
 	"os"
 )
 
-func WriteFile(content []byte, name string) {
-	file, err := os.Create(name)
+type JsonDB struct {
+	filename string
+}
+
+func NewJsonDB(name string) *JsonDB {
+	return &JsonDB{
+		filename: name,
+	}
+}
+
+func (db *JsonDB) Write(content []byte) {
+	file, err := os.Create(db.filename)
 	if err != nil {
-		fmt.Println(err)
+		output.PrintError(err)
 	}
 
 	defer file.Close()
@@ -16,16 +27,16 @@ func WriteFile(content []byte, name string) {
 	_, err = file.Write(content)
 
 	if err != nil {
-		fmt.Println(err)
+		output.PrintError(err)
 	}
 
 	fmt.Println("Запись успешна")
 }
 
-func ReadFile(name string) ([]byte, error) {
-	data, err := os.ReadFile(name)
+func (db *JsonDB) Read() ([]byte, error) {
+	data, err := os.ReadFile(db.filename)
 	if err != nil {
-		fmt.Println(err)
+		output.PrintError(err)
 		return nil, err
 	}
 

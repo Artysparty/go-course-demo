@@ -1,26 +1,47 @@
 package account
 
 import (
-	"demo/app-1/files"
+	"demo/app-1/output"
 	"encoding/json"
 	"strings"
 	"time"
-
-	"github.com/fatih/color"
 )
+
+type ByteReader interface {
+	Read() ([]byte, error)
+}
+
+type ByteWriter interface {
+	Write([]byte)
+}
+
+type Db interface {
+	ByteReader
+	ByteWriter
+}
 
 type Vault struct {
 	Accounts  []Account `json:"accounts"`
 	UpdatedAt time.Time `json:"updatedAt"`
 }
 
-func NewVault() *Vault {
-	file, err := files.ReadFile("data.json")
+type VaultWithDB struct {
+	Vault
+	db Db
+}
+
+func NewVault(db Db) *VaultWithDB {
+
+	file, err := db.Read()
 
 	if err != nil {
-		return &Vault{
-			Accounts:  []Account{},
-			UpdatedAt: time.Now(),
+		output.PrintError(err)
+		return &VaultWithDB{
+			Vault: Vault{
+				Accounts:  []Account{},
+				UpdatedAt: time.Now(),
+			},
+			db: db,
 		}
 	}
 
@@ -28,17 +49,23 @@ func NewVault() *Vault {
 	err = json.Unmarshal(file, &vault)
 
 	if err != nil {
-		color.Red("Не удалось разобрать файл data.json")
-		return &Vault{
-			Accounts:  []Account{},
-			UpdatedAt: time.Now(),
+		output.PrintError("Не удалось разобрать файл data.json")
+		return &VaultWithDB{
+			Vault: Vault{
+				Accounts:  []Account{},
+				UpdatedAt: time.Now(),
+			},
+			db: db,
 		}
 	}
 
-	return &vault
+	return &VaultWithDB{
+		Vault: vault,
+		db:    db,
+	}
 }
 
-func (vault *Vault) AddAccount(acc Account) {
+func (vault *VaultWithDB) AddAccount(acc Account) {
 	vault.Accounts = append(vault.Accounts, acc)
 	vault.save()
 }
@@ -57,7 +84,7 @@ func (vault *Vault) FindAccountByUrl(url string) []Account {
 	return accounts
 }
 
-func (vault *Vault) DeleteAccountByUrl(url string) bool {
+func (vault *VaultWithDB) DeleteAccountByUrl(url string) bool {
 	var accounts []Account
 	isDeleted := false
 	for _, account := range vault.Accounts {
@@ -80,19 +107,19 @@ func (vault *Vault) DeleteAccountByUrl(url string) bool {
 func (vault *Vault) ToBytes() ([]byte, error) {
 	file, err := json.Marshal(vault)
 	if err != nil {
+		output.PrintError(err)
 		return nil, err
 	}
 	return file, nil
 }
 
-func (vault *Vault) save() {
+func (vault *VaultWithDB) save() {
 	vault.UpdatedAt = time.Now()
 
-	data, err := vault.ToBytes()
+	data, err := vault.Vault.ToBytes()
 
 	if err != nil {
-		color.Red("Не удалось преобразовать")
+		output.PrintError("Не удалось преобразовать")
 	}
-
-	files.WriteFile(data, "data.json")
+	vault.db.Write(data)
 }

@@ -2,6 +2,8 @@ package main
 
 import (
 	"demo/app-1/account"
+	"demo/app-1/files"
+	"demo/app-1/output"
 	"fmt"
 
 	"github.com/fatih/color"
@@ -9,43 +11,39 @@ import (
 
 func structures() {
 	fmt.Println("Менеджер паролей")
-	vault := account.NewVault()
+	vault := account.NewVault(files.NewJsonDB("data.json"))
+	// vault := account.NewVault(cloud.NewCloudDB("https://g.ru"))
 
 Menu:
 	for {
-		variant := getMenu()
+		variant := scanTemplate([]string{
+			"1. Создать аккаунт",
+			"2. Найти аккаунт",
+			"3. Удалить аккаунт",
+			"4. Выход",
+			"Выберите вариант",
+		})
 
 		switch variant {
-		case 1:
+		case "1":
 			createAccount(vault)
-		case 2:
+		case "2":
 			findAccount(vault)
-		case 3:
+		case "3":
 			deleteAccount(vault)
-		case 4:
+		case "4":
 			break Menu
 		}
 	}
 }
 
-func getMenu() int {
-	var variant int
-	fmt.Println("Выберите вариант: ")
-	fmt.Println("1. Создать аккаунт")
-	fmt.Println("2. Найти аккаунт")
-	fmt.Println("3. Удалить аккаунт")
-	fmt.Println("4. Выход")
-	fmt.Scan(&variant)
-	return variant
-}
-
-func findAccount(vault *account.Vault) {
-	url := scanTemplate("Введите url для поиска")
+func findAccount(vault *account.VaultWithDB) {
+	url := scanTemplate([]string{"Введите url для поиска"})
 
 	accounts := vault.FindAccountByUrl(url)
 
 	if len(accounts) == 0 {
-		color.Red("Аккаунтов не найдено")
+		output.PrintError("Аккаунтов не найдено")
 	}
 
 	for _, account := range accounts {
@@ -53,22 +51,22 @@ func findAccount(vault *account.Vault) {
 	}
 }
 
-func deleteAccount(vault *account.Vault) {
-	url := scanTemplate("Введите url для удаления")
+func deleteAccount(vault *account.VaultWithDB) {
+	url := scanTemplate([]string{"Введите url для удаления"})
 
 	isDeleted := vault.DeleteAccountByUrl(url)
 
 	if isDeleted {
 		color.Green("Удалено")
 	} else {
-		color.Red("Не найдено")
+		output.PrintError("Аккаунтов не найдено")
 	}
 }
 
-func createAccount(vault *account.Vault) {
-	login := scanTemplate("Введите логин: ")
-	password := scanTemplate("Введите пароль: ")
-	url := scanTemplate("Введите URL: ")
+func createAccount(vault *account.VaultWithDB) {
+	login := scanTemplate([]string{"Введите логин: "})
+	password := scanTemplate([]string{"Введите пароль: "})
+	url := scanTemplate([]string{"Введите URL: "})
 
 	accountOne, err := account.NewAccount(login, url, password)
 
@@ -79,8 +77,14 @@ func createAccount(vault *account.Vault) {
 	vault.AddAccount(*accountOne)
 }
 
-func scanTemplate(template string) string {
-	color.Cyan(template)
+func scanTemplate[T any](templates []T) string {
+	for i, tpl := range templates {
+		if i == len(templates)-1 {
+			fmt.Printf("%v: ", tpl)
+		} else {
+			fmt.Println(tpl)
+		}
+	}
 	var res string
 	fmt.Scan(&res)
 	return res
