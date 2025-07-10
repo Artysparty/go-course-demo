@@ -2,12 +2,15 @@ package main
 
 import (
 	"demo/app-1/account"
+	"demo/app-1/encrypter"
 	"demo/app-1/files"
 	"demo/app-1/output"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/fatih/color"
+	"github.com/joho/godotenv"
 )
 
 var menu = map[string]func(*account.VaultWithDB){
@@ -36,8 +39,17 @@ func menuCounter() func() {
 
 func structures() {
 	fmt.Println("Менеджер паролей")
-	vault := account.NewVault(files.NewJsonDB("data.json"))
+	vault := account.NewVault(files.NewJsonDB("data.vault"), *encrypter.NewEncrypter())
 	counter := menuCounter()
+
+	error := godotenv.Load()
+
+	if error != nil {
+		output.PrintError("Не удалось найти .env")
+	}
+
+	res := os.Getenv("VAR")
+	fmt.Println(res)
 
 Menu:
 	for {

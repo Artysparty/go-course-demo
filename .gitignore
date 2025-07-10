@@ -1,2 +1,4 @@
 app-1.exe
 data.json
+/.env*
+/*.vault
